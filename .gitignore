@@ -3,6 +3,7 @@
 .#*
 ._*
 \#*\#
+.cache
 
 # C extensions
 *.so
@@ -62,3 +63,6 @@ docs/build
 
 # OS X
 .DS_Store
+
+# PyCharm
+.idea

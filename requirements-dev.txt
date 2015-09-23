@@ -1,8 +1,12 @@
-coverage
+-r requirements.txt
+--index-url https://pypi.yelpcorp.com/simple
+# TODO(DATAPIPE-167): Add the packages that don't exist yet to the interal Pypi
+# and remove this extra-index-url
+--extra-index-url https://pypi.python.org/simple/
 flake8
-# older ipython is necessary for py26 compatibility
-ipython<2.0.0
+ipython
 mock
 pre-commit>=0.4.2
 pytest
-pytest-ipdb
+pytest-cov
+pytest-raisesregexp

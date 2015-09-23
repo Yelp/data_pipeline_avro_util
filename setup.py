@@ -26,6 +26,8 @@ setup(
     url='http://servicedocs.yelpcorp.com/docs/yelp_avro/',
     packages=find_packages(exclude=['tests*']),
     install_requires=[
+        'avro>=1.7.7',
+        'cached-property>=0.1.5',
     ],
     zip_safe=False,
     keywords='yelp_avro',
