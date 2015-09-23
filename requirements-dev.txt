@@ -1,0 +1,8 @@
+coverage
+flake8
+# older ipython is necessary for py26 compatibility
+ipython<2.0.0
+mock
+pre-commit>=0.4.2
+pytest
+pytest-ipdb
