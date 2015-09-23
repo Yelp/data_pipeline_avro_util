@@ -19,7 +19,7 @@ setup(
     # py2 + setuptools asserts isinstance(name, str) so this needs str()
     name=str('yelp_avro'),
     version=yelp_avro.__version__,
-    description=""Common functionality build on top of Apache Avro"",
+    description="Common functionality build on top of Apache Avro",
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
     author=yelp_avro.__author__,
     author_email=yelp_avro.__email__,
