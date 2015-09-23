@@ -5,11 +5,12 @@ from __future__ import unicode_literals
 import pytest
 from avro.io import AvroTypeException
 
-from yelp_avro._avro_util import _avro_primitive_type_to_example_value
-from yelp_avro._avro_util import AvroStringReader
-from yelp_avro._avro_util import AvroStringWriter
-from yelp_avro._avro_util import generate_payload_data
-from yelp_avro._avro_util import get_avro_schema_object
+
+from yelp_avro.avro_string_reader import AvroStringReader
+from yelp_avro.avro_string_writer import AvroStringWriter
+from yelp_avro.util import _avro_primitive_type_to_example_value
+from yelp_avro.util import generate_payload_data
+from yelp_avro.util import get_avro_schema_object
 
 
 class TestGeneratePayloadData(object):
