@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import cStringIO
+
 import avro.io
 from cached_property import cached_property
 
