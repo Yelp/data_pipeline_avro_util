@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import pytest
 
+
 @pytest.fixture
 def avro_schema_json():
     return {

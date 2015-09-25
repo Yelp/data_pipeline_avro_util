@@ -213,9 +213,12 @@ class AvroSchemaBuilder(object):
 
     def _is_nullable_type(self, schema_type):
         null_type = self.create_null()
-        return (schema_type is not None
-                and (schema_type == null_type
-                     or any(typ == null_type for typ in schema_type)))
+        return (
+            schema_type is not None and (
+                schema_type == null_type or
+                any(typ == null_type for typ in schema_type)
+            )
+        )
 
     def begin_with_schema_json(self, schema_json):
         """Begin building the given schema json object. Note that, similar to
@@ -256,6 +259,7 @@ class AvroSchemaBuilder(object):
             preserve_null (boolean): If true then if `old_field_name` had
                 a "null" in it's type list, the new fields will as well.
         """
+        # TODO(joshszep|DATAPIPE-472): Revisit the logic for this
         field = self.get_field(old_field_name)
         null_type = self.create_null()
         add_null = preserve_null and null_type in field['type']

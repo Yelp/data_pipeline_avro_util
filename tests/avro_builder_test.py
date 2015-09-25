@@ -126,8 +126,8 @@ class TestAvroSchemaBuilder(object):
 
     def test_create_enum_with_dup_name(self, builder):
         with pytest.raises_regexp(
-                schema.SchemaParseException,
-                self.duplicate_name_err.format(self.name)
+            schema.SchemaParseException,
+            self.duplicate_name_err.format(self.name)
         ):
             builder.begin_record(self.name)
             builder.add_field(
