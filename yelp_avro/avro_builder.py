@@ -7,10 +7,6 @@ import copy
 from avro import schema
 
 
-class AvroBuildInvalidOperation(Exception):
-    pass
-
-
 class AvroSchemaBuilder(object):
     """
     AvroSchemaBuilder creates json-formatted Avro schemas. It has `create_*`
@@ -22,17 +18,20 @@ class AvroSchemaBuilder(object):
     the schema building ends, it constructs the corresponding schema object
     which will validate the the syntax of the Avro json object.
 
-    Usage: (unit tests cover more usages)
+    Usage:
       ab = AvroSchemaBuilder()
 
       - building a record schema:
-        ab.begin_record('user', namespace='yelp')
-        ab.add_field('id', ab.create_int())
-        ab.add_field(
+        record = ab.begin_record(
+            'user',
+            namespace='yelp'
+        ).add_field(
+            'id',
+            typ=ab.create_int()
+        ).add_field(
             'fav_color',
-            ab.begin_enum('color_enum', ['red', 'blue']).end()
-        )
-        record = ab.end()
+            typ=ab.begin_enum('color_enum', ['red', 'blue']).end()
+        ).end()
 
       - building an enum schema:
         enum_schema = ab.begin_enum('color_enum', ['red', 'blue']).end()
@@ -45,28 +44,36 @@ class AvroSchemaBuilder(object):
         self._schema_json = None  # current avro schema in build
         self._schema_tracker = []
 
-    def create_null(self):
+    @classmethod
+    def create_null(cls):
         return 'null'
 
-    def create_boolean(self):
+    @classmethod
+    def create_boolean(cls):
         return 'boolean'
 
-    def create_int(self):
+    @classmethod
+    def create_int(cls):
         return 'int'
 
-    def create_long(self):
+    @classmethod
+    def create_long(cls):
         return 'long'
 
-    def create_float(self):
+    @classmethod
+    def create_float(cls):
         return 'float'
 
-    def create_double(self):
+    @classmethod
+    def create_double(cls):
         return 'double'
 
-    def create_bytes(self):
+    @classmethod
+    def create_bytes(cls):
         return 'bytes'
 
-    def create_string(self):
+    @classmethod
+    def create_string(cls):
         return 'string'
 
     def begin_enum(self, name, symbols, namespace=None, aliases=None,
@@ -136,18 +143,32 @@ class AvroSchemaBuilder(object):
 
     def add_field(self, name, typ, has_default=False, default_value=None,
                   sort_order=None, aliases=None, doc=None, **metadata):
-        field = {'name': name, 'type': typ}
-        if has_default:
-            field['default'] = default_value
-        if sort_order:
-            field['order'] = sort_order
-        if aliases:
-            self._set_aliases(field, aliases)
-        if doc:
-            self._set_doc(field, doc)
-        field.update(metadata)
-
+        field = self.create_field(
+            name,
+            typ,
+            has_default=has_default,
+            default_value=default_value,
+            sort_order=sort_order,
+            aliases=aliases,
+            doc=doc,
+            **metadata
+        )
         self._schema_json['fields'].append(field)
+        return self
+
+    @classmethod
+    def create_field(cls, name, typ, has_default=False, default_value=None,
+                     sort_order=None, aliases=None, doc=None, **metadata):
+        return AvroField.from_attributes(
+            name,
+            typ,
+            has_default=has_default,
+            default_value=default_value,
+            sort_order=sort_order,
+            aliases=aliases,
+            doc=doc,
+            **metadata
+        ).field_json
 
     def begin_union(self, *avro_schemas):
         union_schema = list(avro_schemas)
@@ -197,7 +218,7 @@ class AvroSchemaBuilder(object):
         null_type = self.create_null()
 
         src_type = copy.deepcopy(schema_type)
-        if self._is_nullable_type(schema_type):
+        if self.is_nullable_type(schema_type):
             nullable_schema = src_type
         else:
             typ = src_type if isinstance(src_type, list) else [src_type]
@@ -211,8 +232,12 @@ class AvroSchemaBuilder(object):
         self._set_current_schema(nullable_schema)
         return self
 
-    def _is_nullable_type(self, schema_type):
-        null_type = self.create_null()
+    @classmethod
+    def is_nullable_type(cls, schema_type):
+        """Whether the given type is a nullable type, either it is `null` or
+        a union Avro schema type which contains `null`.
+        """
+        null_type = cls.create_null()
         return (
             schema_type is not None and (
                 schema_type == null_type or
@@ -221,27 +246,72 @@ class AvroSchemaBuilder(object):
         )
 
     def begin_with_schema_json(self, schema_json):
-        """Begin building the given schema json object. Note that, similar to
-        other `begin_*` functions, it doesn't validate the input schema json
-        object until the end of schema.
+        """Begin building the given schema json object.  Similar to other
+        `begin_*` functions, it doesn't validate the input schema json until
+        the end of schema.
         """
         self._save_current_schema()
         self._set_current_schema(copy.deepcopy(schema_json))
         return self
 
     def remove_field(self, field_name):
-        self._get_fields().remove(self.get_field(field_name))
+        """Remove the specified field from the fields in the current schema.
+        It throws `ValueError` exception if given field cannot be found.
+        """
+        index, field = self._get_field_and_index(field_name)
+        del self._schema_json['fields'][index]
+        return self
+
+    def insert_field(self, field, index):
+        """Insert the given field at specified field list index.
+
+        Args:
+            field (dict): Python json representation of an Avro field.
+            index (int): position index of the field to be inserted.
+        """
+        self._schema_json['fields'].insert(index, field)
+        return self
+
+    def insert_fields(self, fields, index):
+        """Insert the given field list at specified field list index.
+
+        Args:
+            fields(List[dict]): List of Python json representation of Avro
+                fields.
+            index (int): start position index to insert the given fields.
+        """
+        record_fields = self._schema_json['fields']
+        self._schema_json['fields'] = (record_fields[:index] +
+                                       fields +
+                                       record_fields[index:])
+        return self
+
+    def get_field_index(self, field_name):
+        """Get the field list index of given field name.  It throws
+        `ValueError` exception if given field cannot be found.
+
+        Args:
+            field_name (str): name of the field in interest
+        """
+        index, _ = self._get_field_and_index(field_name)
+        return index
 
     def get_field(self, field_name):
-        field = next(
-            (f for f in self._get_fields() if f['name'] == field_name),
-            None
-        )
-        if not field:
-            raise AvroBuildInvalidOperation(
-                'Cannot find field named {0}'.format(field_name)
-            )
+        """Get the field json dict of given field name.  It throws
+        `ValueError` exception if given field cannot be found.
+
+        Args:
+            field_name (str): name of the field in interest
+        """
+        _, field = self._get_field_and_index(field_name)
         return field
+
+    def _get_field_and_index(self, field_name):
+        fields = self._get_fields()
+        for i, field in enumerate(fields):
+            if field['name'] == field_name:
+                return i, field
+        raise ValueError("Cannot find field named {0}".format(field_name))
 
     def _get_fields(self):
         return self._schema_json.get('fields', [])
@@ -278,3 +348,98 @@ class AvroSchemaBuilder(object):
         """Clear the schemas that are built so far."""
         self._schema_json = None
         self._schema_tracker = []
+
+
+class AvroField(object):
+    """This class is used to hold an Avro field schema and provide an easy way
+    to manipulate the field without directly dealing with Python json dict.
+    """
+
+    _reserved_keys = {'name', 'type', 'default', 'order', 'aliases', 'doc'}
+
+    def __init__(self, field_json):
+        self._field_json = field_json
+
+    @classmethod
+    def from_attributes(cls, name, typ, has_default=False, default_value=None,
+                        sort_order=None, aliases=None, doc=None, **metadata):
+        avro_field = AvroField({'name': name})
+        avro_field.field_type = typ
+        if has_default:
+            avro_field.default_value = default_value
+        if sort_order:
+            avro_field.sort_order = sort_order
+        if aliases:
+            avro_field.aliases = aliases
+        if doc:
+            avro_field.doc = doc
+        avro_field.set_metadata(**metadata)
+        return avro_field
+
+    @property
+    def field_json(self):
+        return self._field_json
+
+    @property
+    def name(self):
+        return self._field_json['name']
+
+    @property
+    def field_type(self):
+        return self._field_json['type']
+
+    @field_type.setter
+    def field_type(self, new_type):
+        self._field_json['type'] = new_type
+
+    @property
+    def has_default(self):
+        return 'default' in self._field_json
+
+    @property
+    def default_value(self):
+        return self._field_json['default']
+
+    @default_value.setter
+    def default_value(self, new_default_value):
+        self._field_json['default'] = new_default_value
+
+    @property
+    def sort_order(self):
+        return self._field_json.get('order')
+
+    @sort_order.setter
+    def sort_order(self, new_sort_order):
+        self._field_json['order'] = new_sort_order
+
+    @property
+    def aliases(self):
+        return self._field_json.get('aliases')
+
+    @aliases.setter
+    def aliases(self, new_aliases):
+        self._field_json['aliases'] = new_aliases
+
+    @property
+    def doc(self):
+        return self._field_json.get('doc')
+
+    @doc.setter
+    def doc(self, new_doc):
+        self._field_json['doc'] = new_doc
+
+    @property
+    def metadata(self):
+        return {
+            k: v for k, v in self._field_json.items()
+            if k not in self._reserved_keys
+        }
+
+    def clear_metadata(self):
+        self._field_json = {
+            k: v for k, v in self._field_json.items()
+            if k in self._reserved_keys
+        }
+
+    def set_metadata(self, **metadata):
+        self._field_json.update(metadata)

@@ -5,14 +5,15 @@ from __future__ import unicode_literals
 import pytest
 from avro import schema
 
-from yelp_avro import avro_builder
+from yelp_avro.avro_builder import AvroField
+from yelp_avro.avro_builder import AvroSchemaBuilder
 
 
 class TestAvroSchemaBuilder(object):
 
     @pytest.fixture
     def builder(self):
-        return avro_builder.AvroSchemaBuilder()
+        return AvroSchemaBuilder()
 
     @property
     def name(self):
@@ -95,7 +96,7 @@ class TestAvroSchemaBuilder(object):
             'name': self.name,
             'symbols': self.enum_symbols
         }
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_enum_with_optional_attributes(self, builder):
         actual_json = builder.begin_enum(
@@ -116,7 +117,8 @@ class TestAvroSchemaBuilder(object):
             'doc': self.doc
         }
         expected_json.update(self.metadata)
-        assert expected_json == actual_json
+
+        assert actual_json == expected_json
 
     def test_create_enum_with_invalid_name(self, builder):
         for invalid_name in self.invalid_names:
@@ -129,24 +131,18 @@ class TestAvroSchemaBuilder(object):
             schema.SchemaParseException,
             self.duplicate_name_err.format(self.name)
         ):
-            builder.begin_record(self.name)
-            builder.add_field(
+            builder.begin_record(self.name).add_field(
                 self.another_name,
                 builder.begin_enum(self.name, self.enum_symbols).end()
-            )
-            builder.end()
+            ).end()
 
-    def test_create_enum_with_invalid_symbols(self, builder):
-        def single_test_create_enum_with_invalid_symbols(invalid_symbols):
-            builder.clear()
-            with pytest.raises(schema.AvroException):
-                builder.begin_enum(self.name, invalid_symbols).end()
-        single_test_create_enum_with_invalid_symbols(None)
-        single_test_create_enum_with_invalid_symbols('')
-        single_test_create_enum_with_invalid_symbols('a')
-        single_test_create_enum_with_invalid_symbols(['a', 1])
-        single_test_create_enum_with_invalid_symbols([1, 2, 3])
-        single_test_create_enum_with_invalid_symbols(['a', 'a'])
+    @pytest.fixture(params=[None, '', 'a', ['a', 1], [1, 2, 3], ['a', 'a']])
+    def invalid_symbols(self, request):
+        return request.param
+
+    def test_create_enum_with_invalid_symbols(self, builder, invalid_symbols):
+        with pytest.raises(schema.AvroException):
+            builder.begin_enum(self.name, invalid_symbols).end()
 
     def test_create_fixed(self, builder):
         actual_json = builder.begin_fixed(self.name, self.fixed_size).end()
@@ -155,7 +151,7 @@ class TestAvroSchemaBuilder(object):
             'name': self.name,
             'size': self.fixed_size
         }
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_fixed_with_optional_attributes(self, builder):
         actual_json = builder.begin_fixed(
@@ -165,6 +161,7 @@ class TestAvroSchemaBuilder(object):
             self.aliases,
             **self.metadata
         ).end()
+
         expected_json = {
             'type': 'fixed',
             'name': self.name,
@@ -173,7 +170,8 @@ class TestAvroSchemaBuilder(object):
             'aliases': self.aliases,
         }
         expected_json.update(self.metadata)
-        assert expected_json == actual_json
+
+        assert actual_json == expected_json
 
     def test_create_fixed_with_invalid_name(self, builder):
         for invalid_name in self.invalid_names:
@@ -183,28 +181,26 @@ class TestAvroSchemaBuilder(object):
 
     def test_create_fixed_with_dup_name(self, builder):
         with pytest.raises_regexp(
-                schema.SchemaParseException,
-                self.duplicate_name_err.format(self.name)
+            schema.SchemaParseException,
+            self.duplicate_name_err.format(self.name)
         ):
-            builder.begin_record(self.name)
-            builder.add_field(
+            builder.begin_record(self.name).add_field(
                 self.another_name,
                 builder.begin_fixed(self.name, self.fixed_size).end()
-            )
-            builder.end()
+            ).end()
 
-    def test_create_fixed_with_invalid_size(self, builder):
-        def single_test_create_fixed_with_invalid_size(invalid_size):
-            builder.clear()
-            with pytest.raises(schema.AvroException):
-                builder.begin_fixed(self.name, invalid_size).end()
-        single_test_create_fixed_with_invalid_size(None)
-        single_test_create_fixed_with_invalid_size('ten')
+    @pytest.fixture(params=[None, 'ten'])
+    def invalid_size(self, request):
+        return request.param
+
+    def test_create_fixed_with_invalid_size(self, builder, invalid_size):
+        with pytest.raises(schema.AvroException):
+            builder.begin_fixed(self.name, invalid_size).end()
 
     def test_create_array(self, builder):
         actual_json = builder.begin_array(builder.create_int()).end()
         expected_json = {'type': 'array', 'items': 'int'}
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_array_with_optional_attributes(self, builder):
         actual_json = builder.begin_array(
@@ -215,7 +211,7 @@ class TestAvroSchemaBuilder(object):
         expected_json = {'type': 'array', 'items': 'int'}
         expected_json.update(self.metadata)
 
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_array_with_complex_type(self, builder):
         actual_json = builder.begin_array(
@@ -229,7 +225,7 @@ class TestAvroSchemaBuilder(object):
                 'symbols': self.enum_symbols
             }
         }
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_array_with_invalid_items_type(self, builder):
         for invalid_schema in self.invalid_schemas:
@@ -240,16 +236,18 @@ class TestAvroSchemaBuilder(object):
     def test_create_map(self, builder):
         actual_json = builder.begin_map(builder.create_string()).end()
         expected_json = {'type': 'map', 'values': 'string'}
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_map_with_optional_attributes(self, builder):
         actual_json = builder.begin_map(
             builder.create_string(),
             **self.metadata
         ).end()
+
         expected_json = {'type': 'map', 'values': 'string'}
         expected_json.update(self.metadata)
-        assert expected_json == actual_json
+
+        assert actual_json == expected_json
 
     def test_create_map_with_complex_type(self, builder):
         actual_json = builder.begin_map(
@@ -263,7 +261,7 @@ class TestAvroSchemaBuilder(object):
                 'size': self.fixed_size
             }
         }
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_map_with_invalid_values_type(self, builder):
         for invalid_schema in self.invalid_schemas:
@@ -272,16 +270,16 @@ class TestAvroSchemaBuilder(object):
                 builder.begin_map(invalid_schema).end()
 
     def test_create_record(self, builder):
-        builder.begin_record(self.name)
-        builder.add_field(
+        actual_json = builder.begin_record(
+            self.name
+        ).add_field(
             'bar1',
             builder.create_int()
-        )
-        builder.add_field(
+        ).add_field(
             'bar2',
             builder.begin_map(builder.create_double()).end()
-        )
-        actual_json = builder.end()
+        ).end()
+
         expected_json = {
             'type': 'record',
             'name': self.name,
@@ -290,21 +288,20 @@ class TestAvroSchemaBuilder(object):
                 {'name': 'bar2', 'type': {'type': 'map', 'values': 'double'}}
             ]
         }
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_record_with_optional_attributes(self, builder):
-        builder.begin_record(
+        actual_json = builder.begin_record(
             self.name,
             namespace=self.namespace,
             aliases=self.aliases,
             doc=self.doc,
             **self.metadata
-        )
-        builder.add_field(
+        ).add_field(
             self.another_name,
             builder.create_int()
-        )
-        actual_json = builder.end()
+        ).end()
+
         expected_json = {
             'type': 'record',
             'name': self.name,
@@ -314,11 +311,11 @@ class TestAvroSchemaBuilder(object):
             'doc': self.doc
         }
         expected_json.update(self.metadata)
-        assert expected_json == actual_json
+
+        assert actual_json == expected_json
 
     def test_create_field_with_optional_attributes(self, builder):
-        builder.begin_record(self.name)
-        builder.add_field(
+        actual_json = builder.begin_record(self.name).add_field(
             self.another_name,
             builder.create_boolean(),
             has_default=True,
@@ -327,8 +324,8 @@ class TestAvroSchemaBuilder(object):
             aliases=self.aliases,
             doc=self.doc,
             **self.metadata
-        )
-        actual_json = builder.end()
+        ).end()
+
         expected_field = {
             'name': self.another_name,
             'type': 'boolean',
@@ -343,76 +340,75 @@ class TestAvroSchemaBuilder(object):
             'name': self.name,
             'fields': [expected_field]
         }
-        assert expected_json == actual_json
+
+        assert actual_json == expected_json
 
     def test_create_record_with_no_field(self, builder):
         actual_json = builder.begin_record(self.name).end()
         expected_json = {'type': 'record', 'name': self.name, 'fields': []}
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_record_with_invalid_name(self, builder):
         for invalid_name in self.invalid_names:
             builder.clear()
             with pytest.raises(schema.SchemaParseException):
-                builder.begin_record(invalid_name)
-                builder.add_field(
+                builder.begin_record(
+                    invalid_name
+                ).add_field(
                     self.another_name,
                     builder.create_int()
-                )
-                builder.end()
+                ).end()
 
     def test_create_record_with_dup_name(self, builder):
         with pytest.raises_regexp(
-                schema.SchemaParseException,
-                self.duplicate_name_err.format(self.name)
+            schema.SchemaParseException,
+            self.duplicate_name_err.format(self.name)
         ):
-            builder.begin_record(self.another_name)
-            builder.add_field(
+            builder.begin_record(
+                self.another_name
+            ).add_field(
                 'bar1',
                 builder.begin_enum(self.name, self.enum_symbols).end()
-            )
-            builder.add_field(
+            ).add_field(
                 'bar2',
                 builder.begin_record(self.name).end()
-            )
-            builder.end()
+            ).end()
 
     def test_create_record_with_dup_field_name(self, builder):
         with pytest.raises_regexp(
-                schema.SchemaParseException,
-                "{0} already in use.".format(self.another_name)
+            schema.SchemaParseException,
+            "{0} already in use.".format(self.another_name)
         ):
-            builder.begin_record(self.name)
-            builder.add_field(
+            builder.begin_record(
+                self.name
+            ).add_field(
                 self.another_name,
                 builder.create_int()
-            )
-            builder.add_field(
+            ).add_field(
                 self.another_name,
                 builder.create_string()
-            )
-            builder.end()
+            ).end()
 
     def test_create_field_with_invalid_type(self, builder):
         for invalid_schema in self.invalid_schemas:
             builder.clear()
             with pytest.raises(schema.SchemaParseException):
-                builder.begin_record(self.name)
-                builder.add_field(
+                builder.begin_record(
+                    self.name
+                ).add_field(
                     self.another_name,
                     invalid_schema
-                )
-                builder.end()
+                ).end()
 
     def test_create_field_with_invalid_sort_order(self, builder):
         with pytest.raises(schema.SchemaParseException):
-            builder.begin_record(self.name)
-            builder.add_field(
+            builder.begin_record(
+                self.name
+            ).add_field(
                 self.another_name,
                 builder.create_int(),
                 sort_order='asc'
-            )
-            builder.end()
+            ).end()
 
     def test_create_union(self, builder):
         actual_json = builder.begin_union(
@@ -425,12 +421,12 @@ class TestAvroSchemaBuilder(object):
             'string',
             {'type': 'enum', 'name': self.name, 'symbols': self.enum_symbols}
         ]
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_union_with_empty_sub_schemas(self, builder):
         actual_json = builder.begin_union().end()
         expected_json = []
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_union_with_nested_union_schema(self, builder):
         with pytest.raises(schema.SchemaParseException):
@@ -467,42 +463,40 @@ class TestAvroSchemaBuilder(object):
 
     def test_create_nullable_type(self, builder):
         # non-union schema type
-        actual_json = builder.begin_nullable_type(
-            builder.create_int()
-        ).end()
+        actual_json = builder.begin_nullable_type(builder.create_int()).end()
         expected_json = ['null', 'int']
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
         # union schema type
         actual_json = builder.begin_nullable_type(
             [builder.create_int()]
         ).end()
         expected_json = ['null', 'int']
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_nullable_type_with_default_value(self, builder):
         # non-union schema type
         actual_json = builder.begin_nullable_type(
             builder.create_int(),
-            10
+            default_value=10
         ).end()
         expected_json = ['int', 'null']
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
         # union schema type
         actual_json = builder.begin_nullable_type(
             [builder.create_int()],
-            10
+            default_value=10
         ).end()
         expected_json = ['int', 'null']
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_nullable_type_with_null_type(self, builder):
         actual_json = builder.begin_nullable_type(
             builder.create_null()
         ).end()
         expected_json = 'null'
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_nullable_type_with_nullable_type(self, builder):
         actual_json = builder.begin_nullable_type(
@@ -510,10 +504,10 @@ class TestAvroSchemaBuilder(object):
                 builder.create_null(),
                 builder.create_long()
             ).end(),
-            10
+            default_value=10
         ).end()
         expected_json = ['null', 'long']
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_create_nullable_type_with_invalid_type(self, builder):
         for invalid_schema in self.invalid_schemas:
@@ -521,47 +515,105 @@ class TestAvroSchemaBuilder(object):
             with pytest.raises(schema.SchemaParseException):
                 builder.begin_nullable_type(invalid_schema)
 
-    def test_create_schema_with_preloaded_json(self, builder):
-        schema_json = {
+    @property
+    def record_schema_json(self):
+        return {
             'type': 'record',
             'name': self.name,
-            'fields': [
-                {'name': 'field', 'type': {'type': 'map', 'values': 'double'}}
-            ]
+            'fields': [self.field_json]
         }
-        builder.begin_with_schema_json(schema_json)
-        builder.add_field(
-            'field_new',
-            builder.create_int()
-        )
-        actual_json = builder.end()
-        expected_json = schema_json.copy()
-        expected_json['fields'].append({'name': 'field_new', 'type': 'int'})
-        assert expected_json == actual_json
+
+    @property
+    def field_json(self):
+        return {'name': 'bar', 'type': 'int'}
+
+    def test_create_schema_with_preloaded_json(self, builder):
+        actual_json = builder.begin_with_schema_json(
+            self.record_schema_json
+        ).add_field(
+            'new_field',
+            typ=builder.create_int()
+        ).end()
+
+        expected_json = self.record_schema_json
+        expected_json['fields'].append({'name': 'new_field', 'type': 'int'})
+        assert actual_json == expected_json
 
     def test_removed_field(self, builder):
-        builder.begin_record(self.name)
-        builder.add_field('bar1', builder.create_int())
-        builder.add_field('bar2', builder.create_int())
-        builder.remove_field('bar1')
-        actual_json = builder.end()
+        actual_json = builder.begin_record(
+            self.name
+        ).add_field(
+            'bar1',
+            builder.create_int()
+        ).add_field(
+            'bar2',
+            builder.create_int()
+        ).remove_field('bar1').end()
+
         expected_json = {
             'type': 'record',
             'name': self.name,
             'fields': [{'name': 'bar2', 'type': 'int'}]
         }
-        assert expected_json == actual_json
+        assert actual_json == expected_json
 
     def test_removed_nonexistent_field(self, builder):
-        schema_json = {
-            'type': 'record',
-            'name': self.name,
-            'fields': [{'name': 'bar2', 'type': 'int'}]
-        }
-        with pytest.raises(avro_builder.AvroBuildInvalidOperation):
-            builder.begin_with_schema_json(schema_json)
-            builder.remove_field('bar1')
-            builder.end()
+        with pytest.raises(ValueError):
+            builder.begin_record('foo').add_field('a', 'int').remove_field('b')
+
+    def test_insert_field(self, builder):
+        actual_json = builder.begin_with_schema_json(
+            self.record_schema_json
+        ).insert_field(
+            builder.create_field('bar2', builder.create_int()),
+            index=0
+        ).end()
+
+        expected_json = self.record_schema_json
+        expected_json['fields'] = [
+            {'name': 'bar2', 'type': 'int'},
+            self.field_json
+        ]
+        assert actual_json == expected_json
+
+    def test_insert_fields(self, builder):
+        new_fields = [
+            builder.create_field('f1', builder.create_int()),
+            builder.create_field('f2', builder.create_int()),
+        ]
+        actual_json = builder.begin_with_schema_json(
+            self.record_schema_json
+        ).insert_fields(
+            new_fields,
+            index=0
+        ).end()
+
+        expected_json = self.record_schema_json
+        expected_json['fields'] = [
+            {'name': 'f1', 'type': 'int'},
+            {'name': 'f2', 'type': 'int'},
+            self.field_json
+        ]
+        assert actual_json == expected_json
+
+    def test_get_field(self, builder):
+        builder.begin_with_schema_json(self.record_schema_json)
+        actual = builder.get_field('bar')
+        assert actual == self.field_json
+
+    def test_get_nonexistent_field(self, builder):
+        with pytest.raises(ValueError):
+            builder.begin_record('foo').add_field('a', 'int').get_field('b')
+
+    def test_get_field_index(self, builder):
+        builder.begin_with_schema_json(self.record_schema_json)
+        actual = builder.get_field_index('bar')
+        assert actual == 0
+
+    def test_get_nonexistent_field_index(self, builder):
+        with pytest.raises(ValueError):
+            builder.begin_record('foo').add_field('a', 'int')
+            builder.get_field_index(field_name='b')
 
     def test_replace_field_preserve_null_true(self, builder):
         schema_json = {
@@ -608,3 +660,61 @@ class TestAvroSchemaBuilder(object):
             {'name': 'new_double_bytes', 'type': ['double', 'bytes']},
             {'name': 'new_boolean_null', 'type': ['null', 'boolean']},
         ]
+
+
+class TestAvroField(object):
+
+    def test_instantiate_from_json(self):
+        expected_json = {'name': 'bar', 'type': 'int'}
+
+        actual = AvroField(expected_json)
+        assert actual.name == 'bar'
+        assert actual.field_type == 'int'
+        assert not actual.has_default
+        assert actual.sort_order is None
+        assert actual.aliases is None
+        assert actual.doc is None
+        assert actual.metadata == {}
+        assert actual.field_json == expected_json
+
+    def test_instantiate_from_attributes(self):
+        actual = AvroField.from_attributes(
+            name='bar',
+            typ='int',
+            has_default=True,
+            default_value=10,
+            sort_order='ignore',
+            aliases=['rab'],
+            doc='bar field',
+            **{'key1': 'value1'}
+        )
+        assert actual.name == 'bar'
+        assert actual.field_type == 'int'
+        assert actual.has_default
+        assert actual.default_value == 10
+        assert actual.sort_order == 'ignore'
+        assert actual.aliases == ['rab']
+        assert actual.doc == 'bar field'
+        assert actual.metadata == {'key1': 'value1'}
+
+        expected_json = {
+            'name': 'bar',
+            'type': 'int',
+            'default': 10,
+            'order': 'ignore',
+            'aliases': ['rab'],
+            'doc': 'bar field',
+            'key1': 'value1'
+        }
+        assert actual.field_json == expected_json
+
+    def test_get_metadata(self):
+        field = AvroField({'name': 'bar', 'type': 'int', 'key1': 'value1'})
+        actual = field.metadata
+        assert actual == {'key1': 'value1'}
+
+    def test_clear_metadata(self):
+        field = AvroField({'name': 'bar', 'type': 'int', 'key1': 'value1'})
+        field.clear_metadata()
+        assert field.field_json == {'name': 'bar', 'type': 'int'}
+        assert field.metadata == {}
