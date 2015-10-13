@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 
-class AvroMetaDataKeyEnum(object):
+class AvroMetaDataKeys(object):
     """Data Pipeline specific valid metadata keys that can be added in the
     Avro Field type"""
 
