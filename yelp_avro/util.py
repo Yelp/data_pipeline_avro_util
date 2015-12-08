@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 import avro.io
 import avro.schema
-import simplejson
 
 
 def get_avro_schema_object(schema):
@@ -21,4 +20,4 @@ def get_avro_schema_object(schema):
     elif isinstance(schema, basestring):
         return avro.schema.parse(schema)
     else:
-        return avro.schema.parse(simplejson.dumps(schema))
+        return avro.schema.make_avsc_object(schema)
