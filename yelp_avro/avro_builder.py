@@ -112,6 +112,37 @@ class AvroSchemaBuilder(object):
         self._set_current_schema(fixed_schema)
         return self
 
+    def begin_decimal_fixed(self, precision, scale, size, name,
+                            namespace=None, **metadata):
+        fixed_decimal_schema = {
+            'type': 'fixed',
+            'logicalType': 'decimal',
+            'name': name,
+            'precision': precision,
+            'scale': scale,
+            'size': size
+        }
+        if namespace:
+            self._set_namespace(fixed_decimal_schema, namespace)
+        fixed_decimal_schema.update(metadata)
+
+        self._save_current_schema()
+        self._set_current_schema(fixed_decimal_schema)
+        return self
+
+    def begin_decimal_bytes(self, precision, scale, **metadata):
+        bytes_decimal_schema = {
+            'type': 'bytes',
+            'logicalType': 'decimal',
+            'precision': precision,
+            'scale': scale
+        }
+
+        bytes_decimal_schema.update(metadata)
+        self._save_current_schema()
+        self._set_current_schema(bytes_decimal_schema)
+        return self
+
     def begin_array(self, items_schema, **metadata):
         array_schema = {'type': 'array', 'items': items_schema}
         array_schema.update(metadata)

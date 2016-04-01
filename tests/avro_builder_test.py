@@ -144,6 +144,92 @@ class TestAvroSchemaBuilder(object):
         with pytest.raises(schema.AvroException):
             builder.begin_enum(self.name, invalid_symbols).end()
 
+    def test_create_fixed_decimal(self, builder):
+        precision = 5
+        scale = 2
+        actual_json = builder.begin_decimal_fixed(
+            precision,
+            scale,
+            self.fixed_size,
+            self.name
+        ).end()
+        expected_json = {
+            'type': 'fixed',
+            'logicalType': 'decimal',
+            'precision': precision,
+            'scale': scale,
+            'name': self.name,
+            'size': self.fixed_size
+        }
+        assert actual_json == expected_json
+
+    def test_create_negative_precision_fixed_decimal(self, builder):
+        with pytest.raises(schema.SchemaParseException):
+            builder.begin_decimal_fixed(
+                -1,
+                2,
+                self.fixed_size,
+                self.name
+            ).end()
+
+    def test_create_negative_scale_fixed_decimal(self, builder):
+        with pytest.raises(schema.SchemaParseException):
+            builder.begin_decimal_fixed(
+                1,
+                -2,
+                self.fixed_size,
+                self.name
+            ).end()
+
+    def test_create_invalid_precision_fixed_decimal(self, builder):
+        with pytest.raises(schema.SchemaParseException):
+            builder.begin_decimal_fixed(
+                4,
+                6,
+                self.fixed_size,
+                self.name
+            ).end()
+
+    def test_create_str_precision_fixed_decimal(self, builder):
+        with pytest.raises(schema.SchemaParseException):
+            builder.begin_decimal_fixed(
+                '4',
+                3,
+                self.fixed_size,
+                self.name
+            ).end()
+
+    def test_create_bytes_decimal(self, builder):
+        precision = 5
+        scale = 2
+        actual_json = builder.begin_decimal_bytes(
+            precision,
+            scale
+        ).end()
+        expected_json = {
+            'type': 'bytes',
+            'logicalType': 'decimal',
+            'precision': precision,
+            'scale': scale
+        }
+        assert actual_json == expected_json
+
+    def test_create_negative_precision_bytes_decimal(self, builder):
+        with pytest.raises(schema.SchemaParseException):
+            builder.begin_decimal_bytes(-1, 3).end()
+
+    def test_create_negative_scale_bytes_decimal(self, builder):
+        with pytest.raises(schema.SchemaParseException):
+            builder.begin_decimal_bytes(1, -2).end()
+
+    def test_create_invalid_precision_bytes_decimal(self, builder):
+        with pytest.raises(schema.SchemaParseException):
+            builder.begin_decimal_bytes(1, 3).end()
+
+    def test_create_str_precision_bytes_decimal(self, builder):
+        with pytest.raises(schema.SchemaParseException):
+            builder.begin_decimal_bytes('4', 3).end()
+
     def test_create_fixed(self, builder):
         actual_json = builder.begin_fixed(self.name, self.fixed_size).end()
         expected_json = {
