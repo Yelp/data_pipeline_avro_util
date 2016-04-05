@@ -20,3 +20,6 @@ class AvroMetaDataKeys(object):
     TIMESTAMP = 'timestamp'   # whether it is a timestamp field
     UNSIGNED = 'unsigned'     # whether the int type is unsigned
     YEAR = 'year'             # whether it is a year field
+    SORT_KEY = 'sortkey'      # the sort key derived from the redshift schema
+    DIST_KEY = 'distkey'      # the dist key derived from the redshift schema
+    ENCODE = 'encode'         # the encode derived from the redshift schema
