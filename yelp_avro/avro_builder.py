@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import collections
 import copy
 
 from avro import schema
@@ -273,7 +272,7 @@ class AvroSchemaBuilder(object):
         return (
             schema_type is not None and (
                 schema_type == null_type or
-                (isinstance(schema_type, collections.Iterable) and
+                (isinstance(schema_type, list) and
                     any(typ == null_type for typ in schema_type))
             )
         )
