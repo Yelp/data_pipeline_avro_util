@@ -64,6 +64,9 @@ class TestAvroSchemaBuilder(object):
         none_schema = None
         yield none_schema
 
+        int_schema = 12
+        yield int_schema
+
     @property
     def invalid_names(self):
         missing_name = None
