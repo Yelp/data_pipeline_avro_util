@@ -23,3 +23,4 @@ class AvroMetaDataKeys(object):
     SORT_KEY = 'sortkey'      # the sort key derived from the redshift schema
     DIST_KEY = 'distkey'      # the dist key derived from the redshift schema
     ENCODE = 'encode'         # the encode derived from the redshift schema
+    DISTSTYLE = 'diststyle'   # the diststyle derived from the redshift schema
