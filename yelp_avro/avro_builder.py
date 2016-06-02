@@ -76,6 +76,61 @@ class AvroSchemaBuilder(object):
     def create_string(cls):
         return 'string'
 
+    def begin_date(self, **metadata):
+        date_schema = {
+            'type': 'int',
+            'logicalType': 'date'
+        }
+        date_schema.update(metadata)
+
+        self._save_current_schema()
+        self._set_current_schema(date_schema)
+        return self
+
+    def begin_time_millis(self, **metadata):
+        time_millis_schema = {
+            'type': 'int',
+            'logicalType': 'time-millis'
+        }
+        time_millis_schema.update(metadata)
+
+        self._save_current_schema()
+        self._set_current_schema(time_millis_schema)
+        return self
+
+    def begin_time_micros(self, **metadata):
+        time_micros_schema = {
+            'type': 'long',
+            'logicalType': 'time-micros'
+        }
+        time_micros_schema.update(metadata)
+
+        self._save_current_schema()
+        self._set_current_schema(time_micros_schema)
+        return self
+
+    def begin_timestamp_millis(self, **metadata):
+        timestamp_millis_schema = {
+            'type': 'long',
+            'logicalType': 'timestamp-millis'
+        }
+        timestamp_millis_schema.update(metadata)
+
+        self._save_current_schema()
+        self._set_current_schema(timestamp_millis_schema)
+        return self
+
+    def begin_timestamp_micros(self, **metadata):
+        timestamp_micros_schema = {
+            'type': 'long',
+            'logicalType': 'timestamp-micros'
+        }
+        timestamp_micros_schema.update(metadata)
+
+        self._save_current_schema()
+        self._set_current_schema(timestamp_micros_schema)
+        return self
+
     def begin_enum(self, name, symbols, namespace=None, aliases=None,
                    doc=None, **metadata):
         enum_schema = {

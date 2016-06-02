@@ -92,6 +92,46 @@ class TestAvroSchemaBuilder(object):
         assert 'bytes' == builder.create_bytes()
         assert 'string' == builder.create_string()
 
+    def test_begin_date(self, builder):
+        expected_json = {
+            'type': 'int',
+            'logicalType': 'date'
+        }
+        actual_json = builder.begin_date().end()
+        assert expected_json == actual_json
+
+    def test_begin_time_millis(self, builder):
+        expected_json = {
+            'type': 'int',
+            'logicalType': 'time-millis'
+        }
+        actual_json = builder.begin_time_millis().end()
+        assert expected_json == actual_json
+
+    def test_begin_time_micros(self, builder):
+        expected_json = {
+            'type': 'long',
+            'logicalType': 'time-micros'
+        }
+        actual_json = builder.begin_time_micros().end()
+        assert expected_json == actual_json
+
+    def test_begin_timestamp_millis(self, builder):
+        expected_json = {
+            'type': 'long',
+            'logicalType': 'timestamp-millis'
+        }
+        actual_json = builder.begin_timestamp_millis().end()
+        assert expected_json == actual_json
+
+    def test_begin_timestamp_micros(self, builder):
+        expected_json = {
+            'type': 'long',
+            'logicalType': 'timestamp-micros'
+        }
+        actual_json = builder.begin_timestamp_micros().end()
+        assert expected_json == actual_json
+
     def test_create_enum(self, builder):
         actual_json = builder.begin_enum(self.name, self.enum_symbols).end()
         expected_json = {
