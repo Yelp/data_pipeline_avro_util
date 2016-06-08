@@ -87,7 +87,6 @@ class AvroSchemaBuilder(object):
             'logicalType': 'date'
         }
         self._time_type_helper(date_schema, **metadata)
-
         return self
 
     def begin_time_millis(self, **metadata):
