@@ -24,3 +24,4 @@ class AvroMetaDataKeys(object):
     DIST_KEY = 'distkey'      # the dist key derived from the redshift schema
     ENCODE = 'encode'         # the encode derived from the redshift schema
     DISTSTYLE = 'diststyle'   # the diststyle derived from the redshift schema
+    SYMBOLS = 'symbols'       # list of strings belonging to an enum type
