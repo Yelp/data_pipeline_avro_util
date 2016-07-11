@@ -1,2 +1,1 @@
-# The -e . syntax means to install the package in this directory as well.
--e git://github.com/Yelp/avro.git@9e11e76da0a30d1ffe21e1a9558315be907ce997#egg=avro&subdirectory=lang/py
+avro==1.11.0
