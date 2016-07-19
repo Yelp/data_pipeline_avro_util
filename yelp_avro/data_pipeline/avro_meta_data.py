@@ -25,3 +25,4 @@ class AvroMetaDataKeys(object):
     ENCODE = 'encode'         # the encode derived from the redshift schema
     DISTSTYLE = 'diststyle'   # the diststyle derived from the redshift schema
     SYMBOLS = 'symbols'       # list of strings belonging to an enum type
+    FSP = 'fsp'               # decimal precision for date objects
