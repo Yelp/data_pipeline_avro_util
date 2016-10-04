@@ -7,7 +7,7 @@ import cStringIO
 import avro.io
 from cached_property import cached_property
 
-from yelp_avro.util import get_avro_schema_object
+from data_pipeline_avro_util.util import get_avro_schema_object
 
 
 class AvroStringReader(object):

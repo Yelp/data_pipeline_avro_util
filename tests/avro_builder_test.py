@@ -5,8 +5,8 @@ from __future__ import unicode_literals
 import pytest
 from avro import schema
 
-from yelp_avro.avro_builder import AvroField
-from yelp_avro.avro_builder import AvroSchemaBuilder
+from data_pipeline_avro_util.avro_builder import AvroField
+from data_pipeline_avro_util.avro_builder import AvroSchemaBuilder
 
 
 class TestAvroSchemaBuilder(object):
