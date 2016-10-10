@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import avro
 
-from yelp_avro.util import get_avro_schema_object
+from data_pipeline_avro_util.util import get_avro_schema_object
 
 
 def test_get_avro_schema_object(avro_schema_json):

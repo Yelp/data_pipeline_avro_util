@@ -5,31 +5,32 @@ from __future__ import unicode_literals
 from setuptools import find_packages
 from setuptools import setup
 
-import yelp_avro
+import data_pipeline_avro_util
 
 readme = open('README.rst').read()
 doclink = """
 Documentation
 -------------
 
-The full documentation is at http://servicedocs.yelpcorp.com/docs/yelp_avro/"""
+The full documentation is at
+http://servicedocs.yelpcorp.com/docs/data_pipeline_avro_util/"""
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     # py2 + setuptools asserts isinstance(name, str) so this needs str()
-    name=str('yelp_avro'),
-    version=yelp_avro.__version__,
+    name=str('data_pipeline_avro_util'),
+    version=data_pipeline_avro_util.__version__,
     description="Common functionality build on top of Apache Avro",
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
-    author=yelp_avro.__author__,
-    author_email=yelp_avro.__email__,
-    url='http://servicedocs.yelpcorp.com/docs/yelp_avro/',
+    author=data_pipeline_avro_util.__author__,
+    author_email=data_pipeline_avro_util.__email__,
+    url='http://servicedocs.yelpcorp.com/docs/data_pipeline_avro_util/',
     packages=find_packages(exclude=['tests*']),
     install_requires=[
         'cached-property>=0.1.5'
     ],
     zip_safe=False,
-    keywords='yelp_avro',
+    keywords='data_pipeline_avro_util',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
