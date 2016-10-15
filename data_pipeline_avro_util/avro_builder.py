@@ -116,7 +116,7 @@ class AvroSchemaBuilder(object):
             'logicalType': 'timestamp-millis'
         }
         self._add_metadata_to_schema(timestamp_millis_schema, **metadata)
-        self._save_and_set_current_schema(timestamp_millis_schema, **metadata)
+        self._save_and_set_current_schema(timestamp_millis_schema)
         return self
 
     def begin_timestamp_micros(self, **metadata):
@@ -125,7 +125,7 @@ class AvroSchemaBuilder(object):
             'logicalType': 'timestamp-micros'
         }
         self._add_metadata_to_schema(timestamp_micros_schema, **metadata)
-        self._save_and_set_current_schema(timestamp_micros_schema, **metadata)
+        self._save_and_set_current_schema(timestamp_micros_schema)
         return self
 
     def begin_enum(self, name, symbols, namespace=None, aliases=None,
@@ -342,7 +342,7 @@ class AvroSchemaBuilder(object):
         """Remove the specified field from the fields in the current schema.
         It throws `ValueError` exception if given field cannot be found.
         """
-        index, field = self._get_field_and_index(field_name)
+        index, field = self._get_index_and_field(field_name)
         del self._schema_json['fields'][index]
         return self
 
@@ -377,7 +377,7 @@ class AvroSchemaBuilder(object):
         Args:
             field_name (str): name of the field in interest
         """
-        index, _ = self._get_field_and_index(field_name)
+        index, _ = self._get_index_and_field(field_name)
         return index
 
     def get_field(self, field_name):
@@ -387,10 +387,10 @@ class AvroSchemaBuilder(object):
         Args:
             field_name (str): name of the field in interest
         """
-        _, field = self._get_field_and_index(field_name)
+        _, field = self._get_index_and_field(field_name)
         return field
 
-    def _get_field_and_index(self, field_name):
+    def _get_index_and_field(self, field_name):
         fields = self._get_fields()
         for i, field in enumerate(fields):
             if field['name'] == field_name:
@@ -400,33 +400,21 @@ class AvroSchemaBuilder(object):
     def _get_fields(self):
         return self._schema_json.get('fields', [])
 
-    def replace_field(self, old_field_name, new_fields, preserve_null=True):
-        """ Replace an existing field with 0 or more new fields, preserving
-        the 'nullability' on the type if required.
+    def replace_field(self, old_field_name, new_fields):
+        """ Replace an existing field with 0 or more new fields.
 
         Args:
             old_field_name (str): The name of the field to replace.
-            new_fields (list(dict)): A list of dictionaries containing kwargs
-                for `add_field`. At the minimum it is expected that the keys
-                "name" and "typ" will be provided. If this list is empty the
-                effect will be the same as calling `remove_field`
-            preserve_null (boolean): If true then if `old_field_name` had
-                a "null" in it's type list, the new fields will as well.
+            new_fields (list(dict)): A list of new fields to replace the old
+                field.  Each field is represented as a dict.  If this list is
+                empty the effect will be the same as calling `remove_field`
         """
-        # TODO(joshszep|DATAPIPE-472): Revisit the logic for this
-        field = self.get_field(old_field_name)
-        null_type = self.create_null()
-        add_null = preserve_null and null_type in field['type']
-        self.remove_field(old_field_name)
-        for field_kwargs in new_fields:
-            new_field_type = field_kwargs['typ']
-            _kwargs = copy.deepcopy(field_kwargs)
-            if add_null and null_type not in new_field_type:
-                if isinstance(field_kwargs['typ'], list):
-                    _kwargs['typ'].insert(0, null_type)
-                else:
-                    _kwargs['typ'] = [null_type, new_field_type]
-            self.add_field(**_kwargs)
+        index, field = self._get_index_and_field(old_field_name)
+        new_fields = new_fields or []
+        record_fields = self._schema_json['fields']
+        self._schema_json['fields'] = (
+            record_fields[:index] + new_fields + record_fields[index + 1:]
+        )
 
     def clear(self):
         """Clear the schemas that are built so far."""
