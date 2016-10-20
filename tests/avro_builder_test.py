@@ -744,51 +744,96 @@ class TestAvroSchemaBuilder(object):
             builder.begin_record('foo').add_field('a', 'int')
             builder.get_field_index(field_name='b')
 
-    def test_replace_field_preserve_null_true(self, builder):
-        schema_json = {
-            'type': 'record',
-            'name': self.name,
-            'fields': [{'name': 'old', 'type': ['null', 'int']}]
-        }
-        builder.begin_with_schema_json(schema_json)
-        builder.replace_field(
-            old_field_name='old',
-            new_fields=[
-                {'name': 'new_string', 'typ': 'string'},
-                {'name': 'new_double_bytes', 'typ': ['double', 'bytes']},
-                {'name': 'new_boolean_null', 'typ': ['null', 'boolean']},
-            ],
-            preserve_null=True
-        )
-        record = builder.end()
-        assert record['fields'] == [
-            {'name': 'new_string', 'type': ['null', 'string']},
-            {'name': 'new_double_bytes', 'type': ['null', 'double', 'bytes']},
-            {'name': 'new_boolean_null', 'type': ['null', 'boolean']},
+    @property
+    def old_field_name(self):
+        return 'old'
+
+    @property
+    def old_field_to_replace(self):
+        return {'name': self.old_field_name, 'type': ['null', 'int']}
+
+    @property
+    def new_fields(self):
+        return [
+            {'name': 'new_string', 'type': 'string'},
+            {'name': 'new_long', 'type': ['null', 'long']}
         ]
 
-    def test_replace_field_preserve_null_false(self, builder):
+    def test_replace_only_field(self, builder):
+        self._test_replace_field(
+            builder,
+            original_fields=[self.old_field_to_replace],
+            expected_fields=self.new_fields
+        )
+
+    def test_replace_first_field(self, builder):
+        another_field = {'name': 'foo', 'type': 'string'}
+        self._test_replace_field(
+            builder,
+            original_fields=[self.old_field_to_replace, another_field],
+            expected_fields=self.new_fields + [another_field]
+        )
+
+    def test_replace_middle_field(self, builder):
+        field_foo = {'name': 'foo', 'type': 'string'}
+        field_bar = {'name': 'bar', 'type': 'bytes'}
+        self._test_replace_field(
+            builder,
+            original_fields=[field_foo, self.old_field_to_replace, field_bar],
+            expected_fields=[field_foo] + self.new_fields + [field_bar]
+        )
+
+    def test_replace_last_field(self, builder):
+        another_field = {'name': 'foo', 'type': 'string'}
+        self._test_replace_field(
+            builder,
+            original_fields=[another_field, self.old_field_to_replace],
+            expected_fields=[another_field] + self.new_fields
+        )
+
+    def _test_replace_field(self, builder, original_fields, expected_fields):
+        schema_json = {
+            'type': 'record',
+            'name': self.name,
+            'fields': original_fields
+        }
+        builder.begin_with_schema_json(schema_json)
+        builder.replace_field(self.old_field_name, new_fields=self.new_fields)
+        actual_schema = builder.end()
+
+        expected_schema = {
+            'type': 'record',
+            'name': self.name,
+            'fields': expected_fields
+        }
+        assert actual_schema == expected_schema
+
+    def test_replace_field_with_no_field(self, builder):
         schema_json = {
             'type': 'record',
             'name': self.name,
             'fields': [{'name': 'old', 'type': ['null', 'int']}]
         }
         builder.begin_with_schema_json(schema_json)
-        builder.replace_field(
-            old_field_name='old',
-            new_fields=[
-                {'name': 'new_string', 'typ': 'string'},
-                {'name': 'new_double_bytes', 'typ': ['double', 'bytes']},
-                {'name': 'new_boolean_null', 'typ': ['null', 'boolean']},
-            ],
-            preserve_null=False
-        )
-        record = builder.end()
-        assert record['fields'] == [
-            {'name': 'new_string', 'type': 'string'},
-            {'name': 'new_double_bytes', 'type': ['double', 'bytes']},
-            {'name': 'new_boolean_null', 'type': ['null', 'boolean']},
-        ]
+        builder.replace_field(old_field_name='old', new_fields=[])
+        actual_schema = builder.end()
+
+        expected_schema = {
+            'type': 'record',
+            'name': self.name,
+            'fields': []
+        }
+        assert actual_schema == expected_schema
+
+    def test_replace_nonexistent_field(self, builder):
+        with pytest.raises(ValueError):
+            builder.begin_record('foo').add_field(
+                name='a',
+                typ='int'
+            ).replace_field(
+                old_field_name='b',
+                new_fields=[{'name': 'c', 'type': 'int'}]
+            )
 
 
 class TestAvroField(object):
