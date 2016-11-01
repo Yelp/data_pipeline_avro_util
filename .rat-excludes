@@ -1,0 +1,8 @@
+build
+dist
+venv
+.tox
+__pycache__
+.cache/
+logs
+bin
