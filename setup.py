@@ -21,7 +21,7 @@ from setuptools import setup
 
 import data_pipeline_avro_util
 
-readme = open('README.rst').read()
+readme = open('README.md').read()
 doclink = """
 Documentation
 -------------
