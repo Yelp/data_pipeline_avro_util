@@ -28,6 +28,7 @@ Usage
 Using Avro Schema Builder::
 ```
 from data_pipeline_avro_util.avro_builder import AvroSchemaBuilder
+from data_pipeline_avro_util.data_pipeline.avro_meta_data import AvroMetaDataKeys
 
 avro_builder = AvroSchemaBuilder()
 avro_builder.begin_record(
@@ -38,7 +39,10 @@ avro_builder.begin_record(
 avro_builder.add_field(
     name = "key1",
     typ = "string",
-    doc="test_doc1"
+    doc="test_doc1",
+    metadata={
+        AvroMetaDataKeys.PRIMARY_KEY: 1
+    }
 )
 avro_builder.add_field(
     name = "key2",
@@ -48,16 +52,16 @@ avro_builder.add_field(
 record_json = avro_builder.end()
 print record_json
 
-	 {
-	    "type": "record",
-	    "namespace": "test_namespace",
-	    "name": "test_name",
-	    "doc": "test_doc",
-	    "fields": [
-	        {"type": "string", "doc": "test_doc1", "name": "key1"},
-	        {"type": "string", "doc": "test_doc2", "name": "key2"}
-	    ]
-	}
+    {
+        "type": "record",
+        "namespace": "test_namespace",
+        "name": "test_name",
+        "doc": "test_doc",
+        "fields": [
+            {"type": "string", "doc": "test_doc1", "name": "key1", "pkey": True},
+            {"type": "string", "doc": "test_doc2", "name": "key2"}
+        ]
+    }
 ```
 
 
