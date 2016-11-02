@@ -38,7 +38,7 @@ avro_builder.begin_record(
 )
 avro_builder.add_field(
     name = "key1",
-    typ = "string",
+    typ = "string",     # datatype of this field
     doc="test_doc1",
     metadata={
         AvroMetaDataKeys.PRIMARY_KEY: 1
