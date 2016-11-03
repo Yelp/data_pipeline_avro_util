@@ -38,10 +38,11 @@ setup(
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
     author=data_pipeline_avro_util.__author__,
     author_email=data_pipeline_avro_util.__email__,
-    url='http://servicedocs.yelpcorp.com/docs/data_pipeline_avro_util/',
+    url='https://github.com/Yelp/data_pipeline_avro_util',
     packages=find_packages(exclude=['tests*']),
     install_requires=[
-        'cached-property>=0.1.5'
+        'cached-property>=0.1.5',
+        'avro==1.11'
     ],
     zip_safe=False,
     keywords='data_pipeline_avro_util',
