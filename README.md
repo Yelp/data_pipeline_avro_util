@@ -8,10 +8,11 @@ for reading and writing Avro schemas. It also provides an enum class
 for metadata that we've found useful to include in our schemas.
 
 
-How to download
----------------
+Download and Install
+---------------------------
 ```
 git clone git@github.com:Yelp/data_pipeline_avro_util.git
+pip install data_pipeline_avro_util
 ```
 
 
@@ -38,10 +39,10 @@ avro_builder.begin_record(
 )
 avro_builder.add_field(
     name = "key1",
-    typ = "string",     # datatype of this field
+    typ = "string",     # datatype of this field is string
     doc="test_doc1",
     metadata={
-        AvroMetaDataKeys.PRIMARY_KEY: 1
+        AvroMetaDataKeys.PRIMARY_KEY: 1     # first primary key
     }
 )
 avro_builder.add_field(
