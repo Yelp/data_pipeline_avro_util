@@ -27,7 +27,7 @@ Documentation
 -------------
 
 The full documentation is at
-http://servicedocs.yelpcorp.com/docs/data_pipeline_avro_util/"""
+TODO (DATAPIPE-2030|abrar): upload servicedocs to public server."""
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
