@@ -1,5 +1,5 @@
--   repo: git@git.yelpcorp.com:mirrors/pre-commit/pre-commit-hooks
-    sha: e306ff3b7d0d9a6fc7d128ef9ca2e0b6e6e76e8f
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    sha: v0.6.0
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
@@ -17,19 +17,11 @@
     -   id: check-merge-conflict
     -   id: name-tests-test
         exclude: tests/helpers/(.+).py
--   repo: git@git.yelpcorp.com:yelp_pre_commit_hooks
-    sha: c6f992c816f37415b6a2c256839e85819a2d698f
-    hooks:
-    -   id: stop-dollar-html
-    -   id: httplib-https-connection
-    -   id: use-except-as
-    -   id: check_mock_methods
-        language_version: python2.7
-    -   id: byte_order_mark
+    -   id: check-byte-order-marker
     -   id: fix-encoding-pragma
     -   id: check-added-large-files
--   repo: git@git.yelpcorp.com:mirrors/asottile/reorder_python_imports
-    sha: 8b583ac1beb0dd0f14c4bceb0a53bb1023cb3dd7
+-   repo: https://github.com/asottile/reorder_python_imports
+    sha: v0.3.0
     hooks:
     -   id: reorder-python-imports
         language_version: python2.7
