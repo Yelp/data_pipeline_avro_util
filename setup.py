@@ -42,7 +42,7 @@ setup(
     packages=find_packages(exclude=['tests*']),
     install_requires=[
         'cached-property>=0.1.5',
-        'avro==1.11'
+        'yelp-avro==1.9.2'
     ],
     zip_safe=False,
     keywords='data_pipeline_avro_util',
