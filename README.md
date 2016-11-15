@@ -66,6 +66,11 @@ print record_json
 ```
 
 
+Disclaimer
+-------
+We're still in the process of setting up this package as a stand-alone. There may be additional work required to run code and integrate with other applications.
+
+
 License
 -------
 Data Pipeline Avro Util is licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
