@@ -1,0 +1,22 @@
+branches:
+  only:
+  - master
+  - /^v[0-9.]+$/
+language: python
+python:
+- '2.7'
+env:
+  matrix:
+  - MAKE_TARGET=test
+install: pip install coveralls tox
+script: if [[ -n "$MAKE_TARGET" ]]; then make "$MAKE_TARGET"; else tox; fi
+after_success:
+  - coveralls
+deploy:
+  provider: pypi
+  user: yelplabs
+  password:
+    secure: <pwd>
+  on:
+    tags: true
+    repo: Yelp/data_pipeline_avro_util
