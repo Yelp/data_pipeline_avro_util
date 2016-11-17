@@ -1,7 +1,7 @@
 branches:
   only:
   - master
-  - /^v[0-9.]+$/
+  - "/^v[0-9.]+$/"
 language: python
 python:
 - '2.7'
@@ -11,12 +11,13 @@ env:
 install: pip install coveralls tox
 script: if [[ -n "$MAKE_TARGET" ]]; then make "$MAKE_TARGET"; else tox; fi
 after_success:
-  - coveralls
+- coveralls
 deploy:
   provider: pypi
   user: yelplabs
   password:
-    secure: <pwd>
+    secure: oo/V6cj1mtXkpJN6/gPFQYZJuVH9I63aEoBePM6fKNvaMbwAo0q3gg9053a6rJ5F+f7Z7+KJoNq0soZJF7H4MwZilpHaclTEp3fMeHIU753VX+B4TvCoSOuORgutLnbuiZluzEzd158LaWgAFiaxbUF+2Jdl1isoiwVsJ96d4PGdJttYh8m2GYMmuzNLxUc/QgcxJPD8jxuBgU6dT0TTcRDakGmTJxqdltD/ipESlHDBcYeYLHycX42RSL8nf4/8n/6WHXX4WDR2KAxsYj2CdGOmwiQqHdEXpZY87ST4JjQLIf6AChZM05BKl1JHJoh4TZLH1+p7342Rhsw/MkA4SaqVIc7xHutf92aCBXT+ZqYnXFZLyOo6bSe1xw1+a6MXdWF2gFRRU7sM2Ghrx0YkEOYSzpo4V5zCd4Dkh0aYyH1yb9Ri/iizWMxoLI3OiFENtJWv2agUOZ7VO+Z8DEmzzjn5KNXG0xPaO6fs3R/QfbHPTt6pM5WgrtX/Xz57OMvNQWD26jxdWwkYcjbRi8OPavxkzkwtBQ6cEOUWi5cD7buQgt8TnyJYgMMETjOn9apONo/g3ySzZPd/7zEPLS39zTzAwXANK2v/7gjeZH1XtTeyPagd0/CPPXgwaYEWKUCZawNNqaq67+s+9SIikckm/PC+7zCMAP5yRxcniH6bBQI=
   on:
     tags: true
+    distributions: sdist bdist_wheel
     repo: Yelp/data_pipeline_avro_util
