@@ -41,6 +41,7 @@ setup(
     url='https://github.com/Yelp/data_pipeline_avro_util',
     packages=find_packages(exclude=['tests*']),
     install_requires=[
+        'avro',
         'cached-property>=0.1.5',
         'yelp-avro==1.9.2'
     ],
